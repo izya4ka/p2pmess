@@ -91,12 +91,12 @@ msg.focus_set()
 
 # Infinity loop for receiving messages
 def loopproc():
-    if s_receive.getpeername()[0] == host[0]:
         log.see(END)
         s_receive.setblocking(False)
         try:
-            message = s_receive.recv(1024)
-            log.insert(END, "User: " + message.decode("utf-8") +'\n')
+            message = s_receive.recvfrom(1024)
+            if message[1][0] == host[0]:
+                log.insert(END, "User: " + message[0].decode("utf-8") +'\n')
         finally:
             tk.after(1, loopproc)
             return
