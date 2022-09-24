@@ -24,6 +24,7 @@ addressbook = AddressBook('addressbook.db')
 host = addressbook.get_ip(nickname)[0].split(":")
 host[1] = int(host[1])
 host = tuple(host)
+
 # Socket for receiving messages
 s_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s_receive.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -90,14 +91,15 @@ msg.focus_set()
 
 # Infinity loop for receiving messages
 def loopproc():
-    log.see(END)
-    s_receive.setblocking(False)
-    try:
-        message = s_receive.recv(1024)
-        log.insert(END, "User: " + message.decode("utf-8") +'\n')
-    finally:
-        tk.after(1, loopproc)
-        return
+    if s_receive.getpeername()[0] == host[0]:
+        log.see(END)
+        s_receive.setblocking(False)
+        try:
+            message = s_receive.recv(1024)
+            log.insert(END, "User: " + message.decode("utf-8") +'\n')
+        finally:
+            tk.after(1, loopproc)
+            return
 
 tk.after(1, loopproc)
 tk.mainloop()

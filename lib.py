@@ -2,15 +2,17 @@ import sqlite3
 import rsa
 
 def load_or_create_user_keys(pubkey_file, privkey_file):
-    with open(pubkey_file, "r+b") as pubkey_file:
-        with open(privkey_file, "r+b") as privkey_file:
-            try:
-                pubkey = rsa.PublicKey.load_pkcs1(pubkey_file.read())
-                privkey = rsa.PrivateKey.load_pkcs1(privkey_file.read())
-            except:
-                (pubkey, privkey) = rsa.newkeys(2048)
-                pubkey_file.write(pubkey.save_pkcs1())
-                privkey_file.write(privkey.save_pkcs1())
+    try:
+        pubkey_file, privkey_file = open(pubkey_file, 'r+b'), open(privkey_file, 'r+b')
+        pubkey = rsa.PublicKey.load_pkcs1(pubkey_file.read())
+        privkey = rsa.PrivateKey.load_pkcs1(privkey_file.read())
+    except FileNotFoundError:
+        pubkey_file, privkey_file = open(pubkey_file, 'w+b'), open(privkey_file, 'w+b')
+        (pubkey, privkey) = rsa.newkeys(2048)
+        pubkey_file.write(pubkey.save_pkcs1())
+        privkey_file.write(privkey.save_pkcs1())
+    pubkey_file.close()
+    privkey_file.close()
     return (pubkey, privkey)
 
 class AddressBook():
