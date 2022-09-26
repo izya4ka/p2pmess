@@ -1,5 +1,3 @@
-#!/bin/python3
-
 import socket
 from tkinter import *
 from tkinter import ttk
@@ -40,6 +38,7 @@ keys = load_or_create_user_keys('pubkey', 'privkey')
 
 # Initialize UI
 tk = Tk()
+tk.attributes('-type', 'dialog')
 tk.title('P2P-chat')
 tk.geometry('700x460')
 tk.columnconfigure(0, weight=1)

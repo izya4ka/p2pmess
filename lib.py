@@ -1,5 +1,6 @@
 import sqlite3
 import rsa
+import re
 
 def load_or_create_user_keys(pubkey_file, privkey_file):
     try:
@@ -15,6 +16,15 @@ def load_or_create_user_keys(pubkey_file, privkey_file):
     privkey_file.close()
     return (pubkey, privkey)
 
+def validate_key(key):
+    start = "-----BEGIN RSA PUBLIC KEY-----"
+    end = "-----END RSA PUBLIC KEY-----"
+
+    if (key[:len(start)] == start) and (key[-len(end):] == end):
+        return True
+    else:
+        return False
+        
 class AddressBook():
 
     def __init__(self, filename):
@@ -32,8 +42,14 @@ class AddressBook():
                 raise UserAldreadyExist
             if ip == row[1]:
                 raise IPAlreadyExist
-        self.cur.execute("INSERT INTO users (nickname, ip, key) VALUES (?, ?, ?)", (nickname, ip, key))
-        self.con.commit()
+        if validate_key(key) or key == '':
+            if re.match(r"^^(((2[0-5]{2})|(1[0-9]{2}|([1-9]\d)|\d))\.?){4}:((655[0-3][0-6])|(65[0-4]\d{2})|(6[0-4]\d{3})|([1-5]\d{4})|([1-9]\d{0,3}))$", ip):
+                self.cur.execute("INSERT INTO users (nickname, ip, key) VALUES (?, ?, ?)", (nickname, ip, key))
+                self.con.commit()
+            else:
+                raise IPNotValid
+        else:
+            raise KeyNotValid
 
     def edit_user(self, nickname_before, nickname, ip, key):
         self.cur.execute("UPDATE users SET nickname = ?, ip = ?, key = ? WHERE nickname = ?", (nickname, ip, key, nickname_before))
@@ -60,5 +76,16 @@ class UserAldreadyExist(Exception):
 
 class IPAlreadyExist(Exception):
     def __init__(self, message="IP already exist!"):
+        self.message = message
+        super().__init__(self.message)
+
+class KeyNotValid(Exception):
+    def __init__(self, message="Key not valid!"):
+        self.message = message
+        super().__init__(self.message)
+
+
+class IPNotValid(Exception):
+    def __init__(self, message="IP not valid!"):
         self.message = message
         super().__init__(self.message)

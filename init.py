@@ -3,12 +3,16 @@
 import os
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from lib import AddressBook
+from lib import KeyNotValid
+from lib import IPNotValid
 import subprocess
 
 addressbook = AddressBook("addressbook.db")
 
 tk = Tk()
+tk.attributes('-type', 'dialog')
 tk.columnconfigure(0, weight=1)
 tk.rowconfigure(0, weight=1)
 tk.title('P2P-chat')
@@ -29,6 +33,7 @@ users.grid(column=0, row=0, rowspan=2)
 
 def user_dialog(choicesvar, edit=False, user=None):
     dialog = Toplevel(main_frame)
+    dialog.attributes('-type', 'dialog')
     dialog.columnconfigure(0, weight=1)
     dialog.rowconfigure(0, weight=1)
     dialog.grid()
@@ -44,12 +49,18 @@ def user_dialog(choicesvar, edit=False, user=None):
         dialog.destroy()
 
     def user_edit_or_add(nickname, ip, key, choicesvar, edit=False, nickname_before=None):
-        if not edit:
-            addressbook.add_user(nickname, ip, key)
-        else:
-            addressbook.edit_user(nickname_before, nickname, ip, key)
-        choicesvar.set(addressbook.get_users())
-        dismiss()
+        print(key)
+        try:
+            if not edit:
+                    addressbook.add_user(nickname, ip, key)
+                    choicesvar.set(addressbook.get_users())
+                    dismiss()
+            else:
+                addressbook.edit_user(nickname_before, nickname, ip, key)
+        except KeyNotValid:
+            messagebox.showerror(title="Error", message="Key not valid!")
+        except IPNotValid:
+            messagebox.showerror(title="Error", message="IP not valid!")
 
     cancel = Button(button_frame, text="Close", command=dismiss)
     cancel.grid(column=1, row=6, sticky=W)
@@ -57,16 +68,17 @@ def user_dialog(choicesvar, edit=False, user=None):
 
     nickname_var = StringVar()
     ip_var = StringVar()
-    key_var = StringVar()
+
+    key = Text(entry_frame)
 
     if not edit:
-        ok = Button(button_frame, text="Add", command=lambda: user_edit_or_add(nickname_var.get(), ip_var.get(), key_var.get(), choicesvar))
+        ok = Button(button_frame, text="Add", command=lambda: user_edit_or_add(nickname_var.get(), ip_var.get(), key.get(1.0, 'end-1c'), choicesvar))
     else:
         full_user_data = addressbook.get_full_user_data(user)[0]
         nickname_var.set(full_user_data[0])
         ip_var.set(full_user_data[1])
-        key_var.set(full_user_data[2])
-        ok = Button(button_frame, text="Save", command=lambda: user_edit_or_add(nickname_var.get(), ip_var.get(), key_var.get(), choicesvar, edit=True, nickname_before=user))
+        key.insert(1.0, full_user_data[2])
+        ok = Button(button_frame, text="Save", command=lambda: user_edit_or_add(nickname_var.get(), ip_var.get(), key.get(1.0, 'end-1c'), choicesvar, edit=True, nickname_before=user))
     ok.grid(column=0, row=6)
     
     nickname_label = Label(entry_frame, text="Nickname")
@@ -81,7 +93,6 @@ def user_dialog(choicesvar, edit=False, user=None):
 
     key_label = Label(entry_frame, text="Key")
     key_label.grid(column=0, row=4, columnspan=2)
-    key = Entry(entry_frame, textvariable=key_var)
     key.grid(column=0, row=5, columnspan=2)
 
 add_user_button = Button(buttons_frame, text="Add user...", command=lambda: user_dialog(choicesvar))
