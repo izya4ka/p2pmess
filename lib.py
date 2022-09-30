@@ -1,6 +1,10 @@
 import sqlite3
 import rsa
 import re
+import platform
+
+def check_windows():
+        return platform.system() == "Windows"
 
 def load_or_create_user_keys(pubkey_file, privkey_file):
     try:
@@ -43,7 +47,7 @@ class AddressBook():
             if ip == row[1]:
                 raise IPAlreadyExist
         if validate_key(key) or key == '':
-            if re.match(r"^^(((2[0-5]{2})|(1[0-9]{2}|([1-9]\d)|\d))\.?){4}:((655[0-3][0-6])|(65[0-4]\d{2})|(6[0-4]\d{3})|([1-5]\d{4})|([1-9]\d{0,3}))$", ip):
+            if re.match(r"^(((2[0-5]{2})|(1[0-9]{2}|([1-9]\d)|\d))\.?){4}:((655[0-3][0-6])|(65[0-4]\d{2})|(6[0-4]\d{3})|([1-5]\d{4})|([1-9]\d{0,3}))$", ip):
                 self.cur.execute("INSERT INTO users (nickname, ip, key) VALUES (?, ?, ?)", (nickname, ip, key))
                 self.con.commit()
             else:

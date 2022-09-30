@@ -7,6 +7,7 @@ from tkinter import messagebox
 from lib import AddressBook
 from lib import KeyNotValid
 from lib import IPNotValid
+from lib import check_windows
 import subprocess
 
 addressbook = AddressBook("addressbook.db")
@@ -33,7 +34,8 @@ users.grid(column=0, row=0, rowspan=2)
 
 def user_dialog(choicesvar, edit=False, user=None):
     dialog = Toplevel(main_frame)
-    dialog.attributes('-type', 'dialog')
+    if not(check_windows()):
+        dialog.attributes('-type', 'dialog')
     dialog.columnconfigure(0, weight=1)
     dialog.rowconfigure(0, weight=1)
     dialog.grid()

@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk
 from lib import load_or_create_user_keys
 from lib import AddressBook
+from lib import check_windows
 import rsa
 import sys
 
@@ -38,7 +39,8 @@ keys = load_or_create_user_keys('pubkey', 'privkey')
 
 # Initialize UI
 tk = Tk()
-tk.attributes('-type', 'dialog')
+if not(check_windows()):
+    tk.attributes('-type', 'dialog')
 tk.title('P2P-chat')
 tk.geometry('700x460')
 tk.columnconfigure(0, weight=1)
